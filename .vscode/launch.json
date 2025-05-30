@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Depurar con PDCurses",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [
+        {
+          "name": "PATH",
+          "value": "${env:MSYS2_HOME}\\mingw64\\bin;${env:PATH}"
+        }
+      ],
+      "externalConsole": true,
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:\\msys64\\ucrt64\\bin\\gdb.exe",
+      "setupCommands": [
+        {
+          "description": "Habilitar pretty-printing",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "Compilar con PDCurses"
+    }
+  ]
+}

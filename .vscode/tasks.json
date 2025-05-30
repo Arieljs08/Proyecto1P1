@@ -1,0 +1,48 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "cppbuild",
+      "label": "Compilar con PDCurses",
+      "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+      "args": [
+        "-fdiagnostics-color=always",
+        "-g",
+        "${file}",
+        "-I${env:MSYS2_HOME}\\mingw64\\include",
+        "-L${env:MSYS2_HOME}\\mingw64\\lib",
+        "-lpdcurses",
+        "-o",
+        "${fileDirname}\\${fileBasenameNoExtension}.exe"
+      ],
+      "options": {
+        "cwd": "${fileDirname}"
+      },
+      "problemMatcher": ["$gcc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "detail": "Compilador: g++ con PDCurses"
+    },
+    {
+      "label": "Ejecutar en terminal nueva",
+      "type": "shell",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "start",
+        "cmd",
+        "/k",
+        "${fileDirname}\\${fileBasenameNoExtension}.exe && pause"
+      ],
+      "problemMatcher": [],
+      "dependsOn": "Compilar con DLL",
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    }
+  ]
+}
