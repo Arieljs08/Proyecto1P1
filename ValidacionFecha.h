@@ -2,22 +2,15 @@
 #ifndef VALIDACION_FECHA_H
 #define VALIDACION_FECHA_H
 
-/// @file ValidacionFecha.h
-/// @brief Funciones para validación de fechas incluyendo feriados y años bisiestos.
-
 #include "ConfigDLL.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+// FUNCIONES EXPORTADAS
+DLL_EXPORT_API bool esBisiesto(int year);
+DLL_EXPORT_API bool esFeriado(int day, int month, int year);
+DLL_EXPORT_API bool validarFecha(int dia, int mes, int anio);
+DLL_EXPORT_API bool esNumero(const char* texto);
+DLL_EXPORT_API bool validarYear(int year);
+DLL_EXPORT_API bool validarMes(int mes);
+DLL_EXPORT_API bool validarDia(int dia, int mes, int anio);
 
-    DLL_EXPORT bool esBisiesto(int year);                       ///< Verifica si un año es bisiesto.
-    DLL_EXPORT bool esFeriado(int day, int month, int year);    ///< Verifica si una fecha es feriado.
-    DLL_EXPORT bool validarFecha(int dia, int mes, int anio);   ///< Valida una fecha completa.
-    DLL_EXPORT bool esNumero(const char* texto);                ///< Verifica si un texto es numérico.
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+#endif // VALIDACION_FECHA_H

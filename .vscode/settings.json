@@ -52,6 +52,7 @@
         "string": "cpp",
         "fstream": "cpp",
         "algorithm": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "sstream": "cpp"
     }
 }

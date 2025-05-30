@@ -4,6 +4,7 @@
 #include "FechaHora.h"
 #include "Paciente.h"
 #include "ListaDoble.h"
+#include "ListaPacientes.h"
 #include <iostream>
 #include <fstream>
 #include <conio.h>
@@ -13,60 +14,54 @@
 
 void Menu::mostrarMenu() {
     const char *opciones[] = {
+        "Agregar paciente",
         "Agregar turno",
         "Buscar turno por cedula",
         "Eliminar turno",
         "Reemplazar turno",
         "Mostrar todos los turnos",
-        "Guardar  backup",
+        "Mostrar todos los pacientes", // NUEVA OPCIÓN
+        "Guardar backup",
         "Cargar backup",
         "Mostrar ayuda",
         "Salir"
     };
-    int n = 9;
+    int n = 11;
     int seleccion = 0;
     int tecla;
 
     do {
-        system("cls");  // limpia pantalla (en Windows)
+        system("cls");
         std::cout << "--- MENU DE TURNOS ---\n\n";
-
         for (int i = 0; i < n; ++i) {
             if (i == seleccion)
                 std::cout << " -> ";
             else
                 std::cout << "    ";
-
             std::cout << opciones[i] << "\n";
         }
-
         tecla = _getch();
-
-        if (tecla == 0 || tecla == 224) {  
+        if (tecla == 0 || tecla == 224) {
             tecla = _getch();
             switch (tecla) {
-                case 72:  // flecha arriba
-                    seleccion--;
-                    if (seleccion < 0) seleccion = n - 1;
-                    break;
-                case 80:  // flecha abajo
-                    seleccion++;
-                    if (seleccion >= n) seleccion = 0;
-                    break;
+                case 72: seleccion--; if (seleccion < 0) seleccion = n - 1; break;
+                case 80: seleccion++; if (seleccion >= n) seleccion = 0; break;
             }
-        } else if (tecla == 13) {  // ENTER
+        } else if (tecla == 13) {
             system("cls");
             std::cout << "Opcion seleccionada: " << opciones[seleccion] << "\n";
             switch (seleccion) {
-                case 0: agregarTurno(); break;
-                case 1: buscarTurno(); break;
-                case 2: eliminarTurno(); break;
-                case 3: reemplazarTurno(); break;
-                case 4: lista.mostrar(); break;
-                case 5: guardarBackup(); break;
-                case 6: cargarBackup(); break;
-                case 7: mostrarAyuda(); break;
-                case 8: 
+                case 0: agregarPaciente(); break;
+                case 1: agregarTurno(); break;
+                case 2: buscarTurno(); break;
+                case 3: eliminarTurno(); break;
+                case 4: reemplazarTurno(); break;
+                case 5: lista.mostrar(); break;
+                case 6: mostrarPacientes(); break; // NUEVA OPCIÓN
+                case 7: guardarBackup(); break;
+                case 8: cargarBackup(); break;
+                case 9: mostrarAyuda(); break;
+                case 10:
                     std::cout << "Saliendo...\n";
                     return;
                 default:
@@ -74,21 +69,24 @@ void Menu::mostrarMenu() {
             }
             system("pause");
         }
-
     } while (true);
 }
 
-void Menu::agregarTurno() {
-    std::cin.ignore();
-    std::string cedula    = std::string(validarCedula("Ingrese cédula: "));
-    std::string telefono  = std::string(validarTelefono("Ingrese teléfono: "));
-    std::string nombre    = std::string(validarNombre("Ingrese nombre: "));
+// --- Agregar paciente ---
+void Menu::agregarPaciente() {
+    std::string cedula = validarCedula("Ingrese cédula: ");
+    if (pacientes.buscarPorCedula(cedula)) {
+        std::cout << "Ya existe un paciente con esa cédula.\n";
+        return;
+    }
+    std::string telefono = validarTelefono("Ingrese teléfono: ");
+    std::string nombre = validarNombre("Ingrese nombre: ");
     capitalizar(nombre);
     if (nombre.empty()) {
         std::cout << "Error: El nombre no puede estar vacío.\n";
         return;
     }
-    std::string apellido  = std::string(validarLetras("Ingrese apellido: "));
+    std::string apellido = validarLetras("Ingrese apellido: ");
     capitalizar(apellido);
     if (apellido.empty()) {
         std::cout << "Error: El apellido no puede estar vacío.\n";
@@ -96,73 +94,115 @@ void Menu::agregarTurno() {
     }
     std::string sexo;
     do {
-        sexo = std::string(validarLetras("Ingrese sexo (M/F): "));
+        sexo = validarLetras("Ingrese sexo (M/F): ");
+        std::transform(sexo.begin(), sexo.end(), sexo.begin(), ::toupper);
         if (sexo != "M" && sexo != "F") {
             std::cout << "Error: El sexo debe ser 'M' o 'F'.\n";
         }
-    } while (sexo != "M" && sexo != "F");	
-    std::string provincia = std::string(validarProvincia("Ingrese provincia: "));
-    std::string ciudad    = std::string(validarCiudad("Ingrese ciudad: "));
-    std::string correo    = std::string(validarCorreo("Ingrese correo: "));
-
+    } while (sexo != "M" && sexo != "F");
+    std::string correo = validarCorreo("Ingrese correo: ");
     std::string direccion;
     do {
         std::cout << "Ingrese dirección: ";
         std::getline(std::cin, direccion);
-        if (direccion.empty()) std::cout << "Error: La dirección no puede estar vacía.\n";
+        bool tieneEspecial = std::any_of(direccion.begin(), direccion.end(), [](char c) {
+            return !isalnum(c) && c != ' ' && c != '#' && c != '-' && c != '.';
+        });
+        if (direccion.empty()) {
+            std::cout << "Error: La dirección no puede estar vacía.\n";
+        } else if (tieneEspecial) {
+            std::cout << "Error: La dirección contiene caracteres inválidos.\n";
+            direccion.clear();
+        }
     } while (direccion.empty());
 
-    int dia, mes, anio, hora, minuto;
-    const char* input;
+    Paciente* paciente = new Paciente(nombre, apellido, cedula, direccion, correo, telefono, sexo);
+    pacientes.agregar(paciente);
+    std::cout << "Paciente agregado correctamente.\n";
+}
 
-    do {
-        input = validarNumeros("Ingrese día: ");
-    } while (!esNumero(input));
-    dia = std::stoi(input);
-
-    do {
-        input = validarNumeros("Ingrese mes: ");
-    } while (!esNumero(input));
-    mes = std::stoi(input);
-
-    do {
-        input = validarNumeros("Ingrese año: ");
-    } while (!esNumero(input));
-    anio = std::stoi(input);
-
-
-    FechaHora fecha(dia, mes, anio, 0, 0);
-    if (fecha.esNoValida()) {
-        std::cout << "Fecha invalida: pasada o feriado\n";
+// --- Agregar turno solo para pacientes ya registrados ---
+void Menu::agregarTurno() {
+    std::string cedula = validarCedula("Ingrese cédula del paciente: ");
+    Paciente* paciente = pacientes.buscarPorCedula(cedula);
+    if (!paciente) {
+        std::cout << "No existe un paciente con esa cédula. Debe agregarlo primero.\n";
         return;
     }
+    std::string provincia = validarProvincia("Ingrese provincia: ");
+    std::string ciudad = validarCiudad("Ingrese ciudad: ");
 
-    hora = validarHora("Ingrese hora (0-23): ");
-    minuto = validarMinuto("Ingrese minuto (0-59): ");
+    int dia = -1, mes = -1, anio = -1, hora = -1, minuto = -1;
+    FechaHora fecha;
+    do {
+        do {
+            std::string input = validarNumeros("Ingrese año (>=2024): ");
+            try {
+                anio = std::stoi(input);
+                if (!validarYear(anio) || anio < 2024) {
+                    std::cout << "Error: El año debe ser 2024 o mayor.\n";
+                    anio = -1;
+                }
+            } catch (...) {
+                std::cout << "Error: Ingrese solo números.\n";
+                anio = -1;
+            }
+        } while (anio == -1);
 
+        do {
+            std::string input = validarNumeros("Ingrese mes (1-12): ");
+            try {
+                mes = std::stoi(input);
+                if (!validarMes(mes)) {
+                    std::cout << "Error: El mes debe estar entre 1 y 12.\n";
+                    mes = -1;
+                }
+            } catch (...) {
+                std::cout << "Error: Ingrese solo números.\n";
+                mes = -1;
+            }
+        } while (mes == -1);
 
-    fecha.setFechaHora(dia, mes, anio, hora, minuto);	
+        do {
+            std::string input = validarNumeros("Ingrese el día (1-31): ");
+            try {
+                dia = std::stoi(input);
+                if (!validarDia(dia, mes, anio)) {
+                    std::cout << "Día inválido para ese mes y año.\n";
+                    dia = -1;
+                }
+            } catch (...) {
+                std::cout << "Error: Ingrese solo números.\n";
+                dia = -1;
+            }
+        } while (dia == -1);
+
+        fecha.setFechaHora(dia, mes, anio, 0, 0);
+        if (fecha.esNoValida()) {
+            std::cout << "Fecha inválida: ya pasó o es feriado.\n";
+        }
+    } while (fecha.esNoValida());
+
+    hora = validarHora("Ingrese la hora (0-23): ");
+    minuto = validarMinuto("Ingrese el minuto (0-59): ");
+    fecha.setFechaHora(dia, mes, anio, hora, minuto);
+
+    if (fecha.esNoValida()) {
+        std::cout << "Fecha y hora inválida: ya pasó.\n";
+        return;
+    }
 
     if (lista.existeTurno(dia, mes, anio, hora, minuto, provincia, ciudad)) {
         std::cout << "Ya existe un turno en esa fecha, hora y provincia\n";
         return;
     }
 
-    Paciente* paciente = new Paciente(
-        nombre.c_str(),
-        apellido.c_str(),
-        cedula.c_str(),
-        direccion.c_str(),
-        correo.c_str(),
-        telefono.c_str(),
-        sexo.c_str()
-    );
     Turno* turno = new Turno(*paciente, fecha, provincia, ciudad);
     lista.agregar(turno);
-
     std::cout << "Turno agregado correctamente.\n";
 }
 
+// --- Buscar turno ---
 void Menu::buscarTurno() {
     std::string cedula = validarNumeros("Ingrese cedula para buscar: ");
     Turno* turnoPtr = lista.buscarPorCedula(cedula);
@@ -173,6 +213,7 @@ void Menu::buscarTurno() {
     }
 }
 
+// --- Eliminar turno ---
 void Menu::eliminarTurno() {
     std::string cedula = validarNumeros("Ingrese cedula para eliminar: ");
     if (lista.eliminarPorCedula(cedula)) {
@@ -182,92 +223,87 @@ void Menu::eliminarTurno() {
     }
 }
 
+// --- Reemplazar turno (solo datos del turno, no del paciente) ---
 void Menu::reemplazarTurno() {
-    std::string cedula = validarNumeros("Ingrese cedula del turno a reemplazar: ");
+    std::string cedula = validarCedula("Ingrese cedula del turno a reemplazar: ");
     Turno* turnoPtr = lista.buscarPorCedula(cedula);
     if (!turnoPtr) {
         std::cout << "No se encontro turno con esa cedula.\n";
         return;
     }
+    std::string provincia = validarProvincia("Ingrese nueva provincia: ");
+    std::string ciudad = validarCiudad("Ingrese nueva ciudad: ");
 
-    std::cout << "Ingrese nuevos datos:\n";
-
-    std::string nuevacedula    = std::string(validarCedula("Ingrese cédula: "));
-    std::string telefono  = std::string(validarTelefono("Ingrese teléfono: "));
-    std::string nombre    = std::string(validarNombre("Ingrese nombre: "));
-    capitalizar(nombre);
-    if (nombre.empty()) {
-        std::cout << "Error: El nombre no puede estar vacío.\n";
-        return;
-    }
-    std::string apellido  = std::string(validarLetras("Ingrese apellido: "));
-    capitalizar(apellido);
-    if (apellido.empty()) {
-        std::cout << "Error: El apellido no puede estar vacío.\n";
-        return;
-    }
-    std::string sexo      = std::string(validarLetras("Ingrese sexo: "));
-    std::string provincia = std::string(validarProvincia("Ingrese provincia: "));
-    std::string ciudad    = std::string(validarCiudad("Ingrese ciudad: "));
-    std::string correo    = std::string(validarCorreo("Ingrese correo: "));
-    std::string direccion;
+    int dia = -1, mes = -1, anio = -1, hora = -1, minuto = -1;
+    FechaHora fecha;
     do {
-        std::cout << "Ingrese direccion: ";
-        std::getline(std::cin, direccion);
-        if (direccion.empty()) std::cout << "Error: La dirección no puede estar vacía.\n";
-    } while (direccion.empty());
+        do {
+            std::string input = validarNumeros("Ingrese año (>=2024): ");
+            try {
+                anio = std::stoi(input);
+                if (!validarYear(anio) || anio < 2024) {
+                    std::cout << "Error: El año debe ser 2024 o mayor.\n";
+                    anio = -1;
+                }
+            } catch (...) {
+                std::cout << "Error: Ingrese solo números.\n";
+                anio = -1;
+            }
+        } while (anio == -1);
 
-    int dia, mes, anio, hora, minuto;
-    const char* input;
+        do {
+            std::string input = validarNumeros("Ingrese mes (1-12): ");
+            try {
+                mes = std::stoi(input);
+                if (!validarMes(mes)) {
+                    std::cout << "Error: El mes debe estar entre 1 y 12.\n";
+                    mes = -1;
+                }
+            } catch (...) {
+                std::cout << "Error: Ingrese solo números.\n";
+                mes = -1;
+            }
+        } while (mes == -1);
 
-    do {
-        input = validarNumeros("Ingrese día: ");
-    } while (!esNumero(input));
-    dia = std::stoi(input);
+        do {
+            std::string input = validarNumeros("Ingrese el día (1-31): ");
+            try {
+                dia = std::stoi(input);
+                if (!validarDia(dia, mes, anio)) {
+                    std::cout << "Día inválido para ese mes y año.\n";
+                    dia = -1;
+                }
+            } catch (...) {
+                std::cout << "Error: Ingrese solo números.\n";
+                dia = -1;
+            }
+        } while (dia == -1);
 
-    do {
-        input = validarNumeros("Ingrese mes: ");
-    } while (!esNumero(input));
-    mes = std::stoi(input);
+        fecha.setFechaHora(dia, mes, anio, 0, 0);
+        if (fecha.esNoValida()) {
+            std::cout << "Fecha inválida: ya pasó o es feriado.\n";
+        }
+    } while (fecha.esNoValida());
 
-    do {
-        input = validarNumeros("Ingrese año: ");
-    } while (!esNumero(input));
-    anio = std::stoi(input);
-
-
-    FechaHora fecha(dia, mes, anio, 0, 0);
-    if (fecha.esNoValida()) {
-        std::cout << "Fecha invalida: pasada o feriado\n";
-        return;
-    }
-
-    hora = validarHora("Ingrese hora (0-23): ");
-    minuto = validarMinuto("Ingrese minuto (0-59): ");
-
-
+    hora = validarHora("Ingrese la hora (0-23): ");
+    minuto = validarMinuto("Ingrese el minuto (0-59): ");
     fecha.setFechaHora(dia, mes, anio, hora, minuto);
+
+    if (fecha.esNoValida()) {
+        std::cout << "Fecha y hora inválida: ya pasó.\n";
+        return;
+    }
 
     if (lista.existeTurno(dia, mes, anio, hora, minuto, provincia, ciudad)) {
         std::cout << "Ya existe un turno en esa fecha, hora y provincia\n";
         return;
     }
 
-    Paciente* paciente = new Paciente(
-        nombre.c_str(),
-        apellido.c_str(),
-        cedula.c_str(),
-        direccion.c_str(),
-        correo.c_str(),
-        telefono.c_str(),
-        sexo.c_str()
-    );
-    Turno* turno = new Turno(*paciente, fecha, provincia, ciudad);
-    lista.reemplazarPorCedula(cedula, turno);
-
-    std::cout << "Turno reemplazado correctamente.\n";
+    lista.reemplazarDatosTurnoPorCedula(cedula, fecha, provincia, ciudad);
+    std::cout << "Datos del turno reemplazados correctamente.\n";
 }
 
+// --- Backup general (turno + paciente) ---
 void Menu::guardarBackup() {
     std::string ruta;
     std::cout << "Ingrese la ruta completa donde desea guardar el backup (ej. C:\\\\Users\\\\TuNombre\\\\Desktop\\\\backup.bin):\n";
@@ -335,24 +371,32 @@ void Menu::cargarBackup() {
         Paciente* p = new Paciente(nombre, apellido, cedula, direccion, correo, telefono, sexo);
         Turno* t = new Turno(*p, fecha, provincia, ciudad);
         lista.agregar(t);
+
+        // Opcional: sincronizar lista de pacientes
+        if (!pacientes.buscarPorCedula(cedula)) {
+            pacientes.agregar(new Paciente(nombre, apellido, cedula, direccion, correo, telefono, sexo));
+        }
     }
 
     archivo.close();
     std::cout << "Backup restaurado correctamente.\n";
 }
 
+// --- Mostrar ayuda ---
 void Menu::mostrarAyuda() {
     std::cout << "----- AYUDA DEL SISTEMA DE TURNOS MEDICOS -----\n";
-    std::cout << "1. Agregar turno: Ingrese los datos del paciente y la fecha deseada.\n";
-    std::cout << "2. Buscar turno: Permite buscar un turno por número de cédula.\n";
-    std::cout << "3. Eliminar turno: Elimina un turno ingresando la cédula del paciente.\n";
-    std::cout << "4. Reemplazar turno: Modifica un turno existente por uno nuevo.\n";
-    std::cout << "5. Mostrar todos los turnos: Muestra todos los turnos agendados.\n";
-    std::cout << "6. Guardar backup: Guarda todos los turnos en un archivo .bin.\n";
-    std::cout << "7. Cargar backup: Recupera los turnos previamente guardados.\n";
-    std::cout << "8. Salir: Cierra el programa.\n";
+    std::cout << "1. Agregar paciente: Registra los datos de un paciente.\n";
+    std::cout << "2. Agregar turno: Solo para pacientes ya registrados.\n";
+    std::cout << "3. Buscar turno: Busca un turno por cédula.\n";
+    std::cout << "4. Eliminar turno: Elimina un turno por cédula.\n";
+    std::cout << "5. Reemplazar turno: Cambia la fecha, hora, provincia o ciudad de un turno.\n";
+    std::cout << "6. Mostrar todos los turnos: Lista todos los turnos agendados.\n";
+    std::cout << "7. Guardar backup: Guarda todos los turnos y pacientes en un archivo .bin.\n";
+    std::cout << "8. Cargar backup: Recupera los turnos y pacientes desde un archivo .bin.\n";
+    std::cout << "9. Salir: Cierra el programa.\n";
 }
 
+// --- Capitalizar nombres ---
 void Menu::capitalizar(std::string& texto) {
     std::transform(texto.begin(), texto.end(), texto.begin(), ::tolower);
     if (!texto.empty())
@@ -361,4 +405,10 @@ void Menu::capitalizar(std::string& texto) {
         if (texto[i - 1] == ' ')
             texto[i] = ::toupper(texto[i]);
     }
+}
+
+// --- Mostrar todos los pacientes ---
+void Menu::mostrarPacientes() {
+    std::cout << "----- LISTA DE PACIENTES REGISTRADOS -----\n";
+    pacientes.mostrar(); 
 }

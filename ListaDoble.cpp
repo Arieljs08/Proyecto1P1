@@ -17,6 +17,11 @@ ListaDoble::~ListaDoble() {
 }
 
 void ListaDoble::agregar(Turno* dato) {
+    if (buscarPorCedula(dato->getPaciente().getCedula()) != nullptr) {
+        std::cerr << "Error: Ya existe un turno con la cédula " << dato->getPaciente().getCedula() << std::endl;
+        delete dato; // Evitar fuga de memoria
+        return;
+    }
     Nodo* nuevo = new Nodo(dato);
     if (!cabeza) {
         cabeza = cola = nuevo;
@@ -59,12 +64,14 @@ Turno* ListaDoble::buscarPorCedula(const std::string& cedula) {
     return nullptr;
 }
 
-bool ListaDoble::reemplazarPorCedula(const std::string& cedula, Turno* nuevoDato) {
+bool ListaDoble::reemplazarDatosTurnoPorCedula(const std::string& cedula, const FechaHora& nuevaFecha,
+                                               const std::string& nuevaProvincia, const std::string& nuevaCiudad) {
     Nodo* actual = cabeza;
     while (actual != nullptr) {
         if (actual->dato->getPaciente().getCedula() == cedula) {
-            delete actual->dato;
-            actual->dato = nuevoDato;
+            actual->dato->setFechaHora(nuevaFecha);
+            actual->dato->setProvincia(nuevaProvincia);
+            actual->dato->setCiudad(nuevaCiudad);
             return true;
         }
         actual = actual->siguiente;
@@ -84,9 +91,9 @@ bool ListaDoble::existeTurno(int dia, int mes, int anio, int hora, int minuto, c
     Nodo* actual = cabeza;
     while (actual != nullptr) {
         auto fh = actual->dato->getFechaHora();
+        // Validar coincidencia de fecha, hora, provincia y ciudad
         if (fh.getDia() == dia && fh.getMes() == mes && fh.getAnio() == anio &&
             fh.getHora() == hora && fh.getMinuto() == minuto &&
-            actual->dato->getProvincia() == provincia &&
             actual->dato->getCiudad() == ciudad) {
             return true;
         }

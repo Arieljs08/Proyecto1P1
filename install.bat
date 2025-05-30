@@ -9,7 +9,7 @@ if not exist "bin" mkdir bin
 
 echo.
 echo Compilando programa...
-g++ -o bin\programa.exe ^
+g++ -o bin\main.exe ^
 main.cpp ListaDoble.cpp Turno.cpp Paciente.cpp FechaHora.cpp Menu.cpp ^
 -L. -lValidarEntrada -lvalidarFeriado
 
@@ -37,7 +37,7 @@ setlocal EnableDelayedExpansion
 
 set "chars=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 for /L %%j in (1,1,5) do (
-    echo Codigo %%j...
+    echo Codigo %%j
 
     set "part1="
     for /L %%i in (1,1,4) do (
@@ -64,4 +64,10 @@ echo.
 echo ===========================================
 echo Guarda tus codigos para activacion/registro.
 echo ===========================================
+echo.
+REM Ejecutar el programa compilado
+echo Ejecutando el sistema...
+cd bin
+start main.exe
+cd ..
 pause

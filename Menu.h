@@ -5,16 +5,20 @@
 /// @brief Clase que gestiona la interfaz de usuario para agendar turnos.
 
 #include "ListaDoble.h"
+#include "ListaPacientes.h"
 #include "Turno.h"
 #include "Paciente.h"
 
 class Menu {
 private:
-    ListaDoble lista;  ///< Lista de turnos médicos.
+    ListaDoble lista;         ///< Lista de turnos médicos.
+    ListaPacientes pacientes; ///< Lista de pacientes registrados.
 public:
     void mostrarMenu();
+    void agregarPaciente();
     void agregarTurno();
     void buscarTurno();
+    void mostrarPacientes();
     void eliminarTurno();
     void reemplazarTurno();
     void guardarBackup();
