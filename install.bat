@@ -10,7 +10,7 @@ if not exist "bin" mkdir bin
 echo.
 echo Compilando programa...
 g++ -o bin\main.exe ^
-main.cpp ListaDoble.cpp Turno.cpp Paciente.cpp FechaHora.cpp Menu.cpp ^
+main.cpp Menu.cpp ListaDoble.cpp listaPacientes.cpp FechaHora.cpp Paciente.cpp Turno.cpp ^
 -L. -lValidarEntrada -lvalidarFeriado
 
 if %errorlevel% neq 0 (

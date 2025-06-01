@@ -3,6 +3,55 @@
   "tasks": [
     {
       "type": "cppbuild",
+      "label": "Compilar con DLL",
+      "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+      "args": [
+        "-fdiagnostics-color=always",
+        "-g",
+        "-o", "bin/main.exe",
+        "src/main.cpp",
+        "src/Menu.cpp",
+        "src/ListaDoble.cpp",
+        "src/listaPacientes.cpp",
+        "src/FechaHora.cpp",
+        "src/Paciente.cpp",
+        "src/Turno.cpp",
+        "-Iinclude",
+        "-Lbin",
+        "-lvalidarFeriado",
+        "-lValidarEntrada"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$gcc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "detail": "Compilación completa del proyecto con DLLs"
+    },
+    {
+      "label": "Ejecutar en terminal nueva",
+      "type": "shell",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "start",
+        "cmd",
+        "/k",
+        "bin\\main.exe && pause"
+      ],
+      "problemMatcher": [],
+      "dependsOn": "Compilar con DLL",
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "type": "cppbuild",
       "label": "Compilar con PDCurses",
       "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
       "args": [
@@ -19,30 +68,8 @@
         "cwd": "${fileDirname}"
       },
       "problemMatcher": ["$gcc"],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
+      "group": "build",
       "detail": "Compilador: g++ con PDCurses"
-    },
-    {
-      "label": "Ejecutar en terminal nueva",
-      "type": "shell",
-      "command": "cmd",
-      "args": [
-        "/c",
-        "start",
-        "cmd",
-        "/k",
-        "${fileDirname}\\${fileBasenameNoExtension}.exe && pause"
-      ],
-      "problemMatcher": [],
-      "dependsOn": "Compilar con DLL",
-      "group": "none",
-      "presentation": {
-        "reveal": "always",
-        "panel": "new"
-      }
     }
   ]
 }
