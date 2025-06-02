@@ -20,7 +20,7 @@ void Menu::mostrarMenu() {
         "Eliminar turno",
         "Reemplazar turno",
         "Mostrar todos los turnos",
-        "Mostrar todos los pacientes", // NUEVA OPCIÓN
+        "Mostrar todos los pacientes", 
         "Guardar backup",
         "Cargar backup",
         "Mostrar ayuda",
@@ -57,7 +57,7 @@ void Menu::mostrarMenu() {
                 case 3: eliminarTurno(); break;
                 case 4: reemplazarTurno(); break;
                 case 5: lista.mostrar(); break;
-                case 6: mostrarPacientes(); break; // NUEVA OPCIÓN
+                case 6: mostrarPacientes(); break; 
                 case 7: guardarBackup(); break;
                 case 8: cargarBackup(); break;
                 case 9: mostrarAyuda(); break;

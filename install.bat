@@ -66,10 +66,10 @@ echo.
 echo ===========================================
 echo Guarda tus codigos para activacion/registro.
 echo ===========================================
+pause
 echo.
 REM Ejecutar el programa compilado
 echo Ejecutando el sistema...
 cd bin
 start main.exe
 cd ..
-pause
